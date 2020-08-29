@@ -2,7 +2,6 @@ package solver
 
 import (
 	"errors"
-	"fmt"
 	"github.com/yourbasic/graph"
 	"io/ioutil"
 	"strings"
@@ -33,12 +32,6 @@ func Solve(from, to string, wordsList []string) ([]string, int64, error) {
 	max := len(arr)
 
 	// Build graph of words that are one of from one another
-	// e.g. wordsList = ['head', 'hear', 'heat', 'mead', 'meat']
-	// heat --- meat
-	//  |        |
-	// head --- mead
-	//  |
-	// hear
 	g := graph.New(max)
 	for i, elem := range arr {
 		for ci, comp := range arr {
@@ -62,8 +55,6 @@ func Solve(from, to string, wordsList []string) ([]string, int64, error) {
 	}
 
 	pathI, dist := graph.ShortestPath(g, fromI, toI)
-
-	fmt.Println("dist: %i", dist)
 
 	if dist == -1 {
 		return nil, dist, errors.New("Unable to find a solution going from: " + from + ", to: " + to)
