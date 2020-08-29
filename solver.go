@@ -8,13 +8,17 @@ import (
 )
 
 // Params:
-// 		from: string, the word to start from
-//		to: string, the word to get to
-//		wordsList: []string, a list of string that can be used as steps to get to 'to' from 'from'
+// 		from: string, the word to start from. Needs to have the same length as to
+//		to: string, the word to get to. Needs to have the same length as from
+//		wordsList: []string, a list of string that can be used as steps to get to 'to' from 'from', MUST be the same length as them
 //			- Solver expects the wordsList to only include words that are of len 4
 // Returns:
 //		The solution, the number of words it takes, or an error
-func Solve(from, to string, wordsList []string) ([]string, int64, error) {
+func Solve(from, to string, wordsList []string, stringLen int) ([]string, int64, error) {
+	if len(from) != len(to) || len(from) != stringLen || len(to) != stringLen {
+		return nil, -1, errors.New("words provided must both be the same length")
+	}
+
 	var arr []string
 	if wordsList == nil {
 		words, err := ioutil.ReadFile("./words.txt")
@@ -35,7 +39,12 @@ func Solve(from, to string, wordsList []string) ([]string, int64, error) {
 	g := graph.New(max)
 	for i, elem := range arr {
 		for ci, comp := range arr {
-			if numOfDiffChars(elem, comp) == 1 {
+			diff, err := numOfDiffChars(elem, comp, stringLen)
+			if err != nil {
+				return nil, -1, err
+			}
+
+			if diff == 1 {
 				g.AddBothCost(i, ci, 1)
 			}
 		}
@@ -57,7 +66,7 @@ func Solve(from, to string, wordsList []string) ([]string, int64, error) {
 	pathI, dist := graph.ShortestPath(g, fromI, toI)
 
 	if dist == -1 {
-		return nil, dist, errors.New("Unable to find a solution going from: " + from + ", to: " + to)
+		return nil, dist, errors.New("unable to find a solution going from: " + from + ", to: " + to)
 	}
 
 	if dist == 0 {
@@ -80,15 +89,19 @@ func findInd(finding string, slice []string) (int, error) {
 			return i, nil
 		}
 	}
-	return -1, errors.New("Unable to find the string " + finding + " in the list")
+	return -1, errors.New("unable to find the string " + finding + " in the list")
 }
 
-func numOfDiffChars(a, b string) int {
+func numOfDiffChars(a, b string, stringLen int) (int, error) {
+	if len(a) != stringLen || len(b) != stringLen {
+		return -1, errors.New("Strings " + a + " and " + b + " have different lengths")
+	}
+
 	result := 0
-	for i := 0; i < 4; i++ {
+	for i := 0; i < stringLen; i++ {
 		if a[i] != b[i] {
 			result++
 		}
 	}
-	return result
+	return result, nil
 }
