@@ -2,6 +2,7 @@ package solver
 
 import (
 	"errors"
+	"fmt"
 	"github.com/yourbasic/graph"
 	"io/ioutil"
 	"strings"
@@ -11,9 +12,10 @@ import (
 // 		from: string, the word to start from
 //		to: string, the word to get to
 //		wordsList: []string, a list of string that can be used as steps to get to 'to' from 'from'
+//			- Solver expects the wordsList to only include words that are of len 4
 // Returns:
 //		The solution, the number of words it takes, or an error
-func Solve(from, to string, wordsList []string) ([]string, int64, error){
+func Solve(from, to string, wordsList []string) ([]string, int64, error) {
 	var arr []string
 	if wordsList == nil {
 		words, err := ioutil.ReadFile("./words.txt")
@@ -30,7 +32,13 @@ func Solve(from, to string, wordsList []string) ([]string, int64, error){
 
 	max := len(arr)
 
-	// Build graph of words
+	// Build graph of words that are one of from one another
+	// e.g. wordsList = ['head', 'hear', 'heat', 'mead', 'meat']
+	// heat --- meat
+	//  |        |
+	// head --- mead
+	//  |
+	// hear
 	g := graph.New(max)
 	for i, elem := range arr {
 		for ci, comp := range arr {
@@ -40,6 +48,9 @@ func Solve(from, to string, wordsList []string) ([]string, int64, error){
 		}
 	}
 
+	// This is due to the inputs expected from ShortestPath,
+	// and the fact that graph is not a <key, val> graph where
+	// the key can be a string
 	fromI, err := findInd(from, arr)
 	if err != nil {
 		return nil, -1, err
@@ -51,6 +62,19 @@ func Solve(from, to string, wordsList []string) ([]string, int64, error){
 	}
 
 	pathI, dist := graph.ShortestPath(g, fromI, toI)
+
+	fmt.Println("dist: %i", dist)
+
+	if dist == -1 {
+		return nil, dist, errors.New("Unable to find a solution going from: " + from + ", to: " + to)
+	}
+
+	if dist == 0 {
+		if from == to { //ease of mind check
+			return []string{from}, 0, nil
+		}
+	}
+
 	var path []string
 	for _, node := range pathI {
 		path = append(path, arr[node])
@@ -58,7 +82,6 @@ func Solve(from, to string, wordsList []string) ([]string, int64, error){
 
 	return path, dist, nil
 }
-
 
 func findInd(finding string, slice []string) (int, error) {
 	for i, elem := range slice {
