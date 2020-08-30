@@ -3,8 +3,6 @@ package solver
 import (
 	"errors"
 	"github.com/yourbasic/graph"
-	"io/ioutil"
-	"strings"
 )
 
 // Params:
@@ -14,23 +12,13 @@ import (
 //			- Solver expects the wordsList to only include words that are of len 4
 // Returns:
 //		The solution, the number of words it takes, or an error
-func Solve(from, to string, wordsList []string, stringLen int) ([]string, int64, error) {
+func Solve(from, to string, arr []string, stringLen int) ([]string, int64, error) {
 	if len(from) != len(to) || len(from) != stringLen || len(to) != stringLen {
 		return nil, -1, errors.New("words provided must both be the same length")
 	}
 
-	var arr []string
-	if wordsList == nil {
-		words, err := ioutil.ReadFile("./words.txt")
-
-		if err != nil {
-			return nil, -1, err
-		}
-
-		// 3997 len
-		arr = strings.Split(string(words), " ")
-	} else {
-		arr = wordsList
+	if arr == nil {
+		return nil, -1, errors.New("invalid array provided for words list")
 	}
 
 	max := len(arr)
